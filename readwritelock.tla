@@ -4,7 +4,7 @@ CONSTANTS Threads
 ASSUME Cardinality(Threads) >= 1
 VARIABLES CurrentReadersCount, CurrentWritersCount, ThreadState
 
-TypeOK == /\ ThreadState \in [Threads -> {"Reading","Writing","Waiting","Finished"}]
+TypeOK == /\ ThreadState \in [Threads -> {"Reading","Writing","Waiting"}]
          /\ CurrentReadersCount >= 0
          /\ CurrentWritersCount >= 0 /\ CurrentWritersCount <= 1
 
@@ -16,9 +16,9 @@ ReaderLocking(t) ==  /\ CurrentWritersCount = 0
                      /\ UNCHANGED CurrentWritersCount
                      /\ TypeOK
 
-ReaderUnlocking(t) == /\ CurrentReadersCount > 0 /\ ThreadState[t] \in {"Reading"}
+ReaderUnlocking(t) == /\ CurrentReadersCount > 0 /\ ThreadState[t] = "Reading"
                       /\ CurrentReadersCount' = CurrentReadersCount - 1 
-                      /\ ThreadState' = [ThreadState EXCEPT ![t] = "Finished"]
+                      /\ ThreadState' = [ThreadState EXCEPT ![t] = "Waiting"]
                       /\ UNCHANGED CurrentWritersCount
                       /\ TypeOK
 
@@ -29,9 +29,9 @@ WriterLocking(t) ==  /\ CurrentReadersCount = 0
                      /\ UNCHANGED CurrentReadersCount
                      /\ TypeOK
 
-WriterUnlocking(t) ==  /\ CurrentWritersCount = 1 /\ ThreadState[t] \in {"Writing"}
+WriterUnlocking(t) ==  /\ CurrentWritersCount = 1 /\ ThreadState[t] = "Writing"
                        /\ CurrentWritersCount' = CurrentWritersCount - 1 
-                       /\ ThreadState' = [ThreadState EXCEPT ![t] = "Finished"]
+                       /\ ThreadState' = [ThreadState EXCEPT ![t] = "Waiting"]
                        /\ UNCHANGED CurrentReadersCount
                        /\ TypeOK
                       
@@ -40,7 +40,7 @@ Next == \E t \in Threads: ReaderLocking(t) \/ ReaderUnlocking(t) \/ WriterLockin
     
 Spec == Init /\ [][Next]_<<CurrentReadersCount,CurrentWritersCount,ThreadState>> 
         
-NoDoubleLock == \A t1 \in Threads: \A t2 \in (Threads \ {t1}): ~(/\ ThreadState[t1] \in {"Writing"}
-                                                              /\ ThreadState[t2] \in {"Reading"})
+NoDoubleLock == \A t1 \in Threads: \A t2 \in (Threads \ {t1}): ~(/\ ThreadState[t1] = "Writing"
+                                                              /\ ThreadState[t2] = "Reading")
 
 ============================================================================================================
