@@ -10,7 +10,7 @@ TypeOK == /\ ThreadState \in [Threads -> {"Reading","Writing","Waiting"}]
 
 Init == ThreadState = [t \in Threads |-> "Waiting"] /\ CurrentReadersCount = 0 /\ CurrentWritersCount = 0
 
-ReaderLocking(t) ==  /\ CurrentWritersCount = 0 
+ReaderLocking(t) ==  /\ CurrentWritersCount = 0 /\ ThreadState[t] = "Waiting"
                      /\ ThreadState' = [ThreadState EXCEPT ![t] = "Reading"]
                      /\ CurrentReadersCount' = CurrentReadersCount + 1
                      /\ UNCHANGED CurrentWritersCount
@@ -22,7 +22,7 @@ ReaderUnlocking(t) == /\ CurrentReadersCount > 0 /\ ThreadState[t] = "Reading"
                       /\ UNCHANGED CurrentWritersCount
                       /\ TypeOK
 
-WriterLocking(t) ==  /\ CurrentReadersCount = 0 
+WriterLocking(t) ==  /\ CurrentReadersCount = 0 /\ ThreadState[t] = "Waiting"
                      /\ CurrentWritersCount = 0
                      /\ ThreadState' = [ThreadState EXCEPT ![t] = "Writing"]
                      /\ CurrentWritersCount' = CurrentWritersCount + 1
